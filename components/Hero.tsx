@@ -266,19 +266,19 @@ export default function Hero() {
 
           {/* Social Links */}
           <div className="flex items-center gap-6 text-zinc-500">
-            <a href="https://linkedin.com" target="_blank" className="hover:text-white transition-colors flex items-center gap-2 group">
+            <a href="https://www.linkedin.com/in/malkimohamed/" target="_blank" className="hover:text-white transition-colors flex items-center gap-2 group">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>
               <span className="text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity -ml-2 group-hover:ml-0">LinkedIn</span>
             </a>
-            <a href="https://github.com" target="_blank" className="hover:text-white transition-colors flex items-center gap-2 group">
+            <a href="https://github.com/MalkiMohamed86" target="_blank" className="hover:text-white transition-colors flex items-center gap-2 group">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.04-.015-2.04-3.34.72-4.045-1.61-4.045-1.61-.555-1.41-1.35-1.785-1.35-1.785-1.095-.75.075-.735.075-.735 1.215.09 1.86 1.245 1.86 1.245 1.08 1.86 2.835 1.32 3.525 1.005.105-.78.42-1.32.765-1.62-2.67-.3-5.475-1.335-5.475-5.94 0-1.32.465-2.385 1.245-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3.015-.405 1.02.0 2.055.135 3.015.405 2.3-1.545 3.285-1.23 3.285-1.23.675 1.65.24 2.88.135 3.18.78.84 1.245 1.905 1.245 3.225 0 4.62-2.82 5.625-5.49 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225 .69 .825 .57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" /></svg>
               <span className="text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity -ml-2 group-hover:ml-0">GitHub</span>
             </a>
-            <a href="mailto:hello@example.com" className="hover:text-white transition-colors flex items-center gap-2 group">
+            <a href="mailto:malkimohamed1202@gmail.com" className="hover:text-white transition-colors flex items-center gap-2 group">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
               <span className="text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity -ml-2 group-hover:ml-0">Email</span>
             </a>
-            <a href="#" className="hover:text-pink-500 transition-colors flex items-center gap-2 group">
+            <a href="https://www.instagram.com/noctis_86_" target="_blank" className="hover:text-pink-500 transition-colors flex items-center gap-2 group">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.069-4.85.069-3.204 0-3.584-.012-4.849-.069-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.069-1.644-.069-4.849 0-3.204.012-3.584.069-4.849.149-3.225 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
               <span className="text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity -ml-2 group-hover:ml-0">Instagram</span>
             </a>
