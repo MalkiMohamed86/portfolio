@@ -9,13 +9,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "John Doe | Full-Stack Developer",
-  description: "Full-stack developer specializing in React, Node.js, and cloud architecture. Building scalable web applications that drive business results.",
-  keywords: ["full-stack developer", "react developer", "node.js", "web development", "software engineer"],
-  authors: [{ name: "John Doe" }],
+  title: "Malki Mohamed | Full-Stack Developer",
+  description: "Full-stack developer specializing in Laravel, React, PHP, and Node.js. Building scalable web applications and system designs.",
+  keywords: ["full-stack developer", "laravel developer", "react developer", "php", "web development", "software engineer", "sql", "python"],
+  authors: [{ name: "Malki Mohamed" }],
   openGraph: {
-    title: "John Doe | Full-Stack Developer",
-    description: "Building digital products that drive results. 5+ years of experience in web development.",
+    title: "Malki Mohamed | Full-Stack Developer",
+    description: "Junior full-stack developer seeking internship or junior position. Experience with Laravel, React, and MySQL.",
     type: "website",
   },
 };

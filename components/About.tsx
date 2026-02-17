@@ -189,60 +189,126 @@ export default function About() {
           </h3>
         </div>
 
-        {/* Description */}
-        <p className="text-slate-400 leading-relaxed max-w-2xl mb-14 text-base">
-          I work with founders and teams who are done with missed deadlines and messy code.
-          I bring clarity to chaos — turning your vision into software that performs,
-          scales, and actually moves your business forward.
-        </p>
+        <div className="flex flex-col lg:flex-row gap-16 items-start">
+          {/* Left Column: Content */}
+          <div className="lg:w-1/2">
+            {/* Description */}
+            <p className="text-slate-400 leading-relaxed mb-10 text-base">
+              <span className="text-purple-400 font-medium">Junior Full-Stack Developer</span> specialized in building clean, scalable, and well-architected applications. I have hands-on experience with Laravel, Node.js, React, and MySQL through academic and real-world projects.
+              <br /><br />
+              I strategically leverage <span className="text-purple-400 font-medium">AI tools</span> to accelerate development, enhance problem-solving, and deliver high-quality, optimized solutions.
+              <br /><br />
+              <span className="text-white font-bold italic">Why me?</span> Because I combine technical depth, fast execution, and continuous learning. I don’t just build features — I build <span className="text-purple-400 font-medium">structured systems designed to last</span>.
+            </p>
 
-        {/* Stats row */}
-        <div className="flex gap-14 md:gap-20 mb-16 pb-16 border-b border-white/[0.06]">
-          {[
-            { value: "5+", label: "Years Experience" },
-            { value: "50+", label: "Projects Shipped" },
-            { value: "30+", label: "Happy Clients" },
-            { value: "99%", label: "Satisfaction" },
-          ].map((stat) => (
-            <div key={stat.label}>
-              <p className="text-3xl md:text-4xl font-bold text-gradient leading-none">{stat.value}</p>
-              <p className="text-[11px] text-slate-500 uppercase tracking-widest mt-2 font-medium">{stat.label}</p>
+            {/* Stats row */}
+            <div className="flex gap-8 mb-12 py-8 border-y border-white/[0.06]">
+              {[
+                { value: "Full", label: "Stack Dev" },
+                { value: "8+", label: "Projects" },
+                { value: "3+", label: "Building" },
+              ].map((stat) => (
+                <div key={stat.label}>
+                  <p className="text-3xl font-bold text-white leading-none">{stat.value}</p>
+                  <p className="text-[10px] text-green-400/70 uppercase tracking-widest mt-2 font-medium">{stat.label}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* Benefit rows */}
-        <div>
-          {[
-            { num: "01", title: "Performance obsessed", body: "Sub-second load times and optimized Core Web Vitals. Your users get speed, you get conversions." },
-            { num: "02", title: "Architected to scale", body: "Clean systems that grow with your business — no costly rewrites when you hit traction." },
-            { num: "03", title: "Transparent process", body: "Weekly updates, honest estimates, and a direct line to me. You always know where things stand." },
-            { num: "04", title: "ROI-driven decisions", body: "I don't build features for fun. Every choice is filtered through one question: does this move the needle?" },
-          ].map((item, idx) => (
-            <div
-              key={idx}
-              className="group flex items-start gap-6 md:gap-10 py-6 border-b border-white/[0.04] last:border-b-0
-                         hover:border-green-500/10 transition-colors"
-            >
-              <span className="text-green-500/30 font-mono text-xs pt-1 group-hover:text-green-500/60 transition-colors shrink-0">
-                {item.num}
-              </span>
-              <div>
-                <h4 className="text-base font-semibold text-white mb-1 group-hover:text-green-400 transition-colors">
-                  {item.title}
-                </h4>
-                <p className="text-slate-500 text-sm leading-relaxed">{item.body}</p>
+            {/* Benefit rows */}
+            <div className="space-y-6">
+              {[
+                { title: "Problem Solver", body: "Strong analytical thinking to break down complex issues." },
+                { title: "Full-Stack Capable", body: "Comfortable with both frontend interfaces and backend logic." },
+                { title: "Quick Learner", body: "Adaptable to new technologies and frameworks." },
+              ].map((item, idx) => (
+                <div key={idx} className="flex gap-4">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2 shrink-0"></div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white mb-1">{item.title}</h4>
+                    <p className="text-slate-500 text-xs leading-relaxed">{item.body}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* CTA */}
+            <div className="mt-10 flex items-center gap-6">
+              <a href="#contact" className="px-6 py-3 bg-white text-black font-bold text-sm rounded hover:bg-zinc-200 transition-colors">Start a Conversation</a>
+              <a href="#projects" className="text-slate-500 hover:text-white text-sm transition-colors border-b border-transparent hover:border-purple-500">or see my work →</a>
+            </div>
+          </div>
+
+          {/* Right Column: Innovation Visual */}
+          <div className="lg:w-1/2 w-full">
+            <div className="relative w-full aspect-square md:aspect-video lg:aspect-square bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm p-8 flex items-center justify-center group">
+
+              {/* Central Core */}
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+              <div className="relative z-10 w-32 h-32 md:w-40 md:h-40 rounded-full bg-black border border-purple-500/30 flex items-center justify-center shadow-[0_0_30px_rgba(168,85,247,0.1)] group-hover:shadow-[0_0_50px_rgba(168,85,247,0.3)] transition-all duration-500">
+                <div className="w-24 h-24 rounded-full bg-purple-500/10 flex items-center justify-center animate-pulse">
+                  <svg className="w-10 h-10 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                </div>
+                {/* Orbiting Elements */}
+                <div className="absolute inset-0 animate-[spin_10s_linear_infinite]">
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 w-8 h-8 bg-[#1a1a1a] rounded-full border border-white/10 flex items-center justify-center text-[10px] text-zinc-400 shadow-lg" title="Claude">
+                    <span className="text-white text-[10px] font-bold">Cl</span>
+                  </div>
+                </div>
+                <div className="absolute inset-0 animate-[spin_15s_linear_infinite_reverse]">
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-4 w-8 h-8 bg-[#1a1a1a] rounded-full border border-white/10 flex items-center justify-center text-[10px] text-zinc-400 shadow-lg" title="ChatGPT">
+                    <span className="text-white text-[10px] font-bold">GPT</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Connecting Lines (Decor) */}
+              <div className="absolute inset-0 pointer-events-none">
+                <svg className="w-full h-full opacity-20">
+                  <circle cx="50%" cy="50%" r="30%" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" className="text-purple-500 animate-[spin_20s_linear_infinite]" />
+                  <circle cx="50%" cy="50%" r="45%" stroke="currentColor" strokeWidth="1" className="text-white/10" />
+                </svg>
+              </div>
+
+              {/* Floating Tool Cards */}
+              {/* Top Right: Claude */}
+              <div className="absolute top-6 right-6 bg-[#111] border border-white/10 p-2.5 rounded-lg shadow-xl translate-y-0 group-hover:-translate-y-2 transition-transform duration-500 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#f5d9bc] flex items-center justify-center text-black font-bold text-xs">Cl</div>
+                <div>
+                  <div className="text-xs font-bold text-white">Claude</div>
+                  <div className="text-[10px] text-zinc-500">Analysis & Logic</div>
+                </div>
+              </div>
+
+              {/* Bottom Left: ChatGPT */}
+              <div className="absolute bottom-6 left-6 bg-[#111] border border-white/10 p-2.5 rounded-lg shadow-xl translate-y-0 group-hover:translate-y-2 transition-transform duration-500 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#74aa9c] flex items-center justify-center text-white font-bold text-xs">GPT</div>
+                <div>
+                  <div className="text-xs font-bold text-white">ChatGPT</div>
+                  <div className="text-[10px] text-zinc-500">Code Gen & Refactor</div>
+                </div>
+              </div>
+
+              {/* Top Left: Copilot */}
+              <div className="absolute top-10 left-8 bg-[#111] border border-white/10 p-2 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-700 delay-100 flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-black text-[10px] font-bold">Co</div>
+                <span className="text-[10px] text-zinc-300">Copilot</span>
+              </div>
+
+              {/* Bottom Right: Gemini */}
+              <div className="absolute bottom-12 right-10 bg-[#111] border border-white/10 p-2 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-700 delay-200 flex items-center gap-2">
+                <span className="text-[10px] text-zinc-300">Gemini</span>
+                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-[10px] font-bold">Ge</div>
+              </div>
+
+              {/* Center Bottom: V0 */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#111] border border-white/10 px-3 py-1.5 rounded-full shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-700 delay-300">
+                <span className="text-[10px] text-zinc-400 font-mono">v0.dev</span>
               </div>
             </div>
-          ))}
+          </div>
         </div>
-
-        {/* CTA */}
-        <div className="mt-12 flex items-center gap-6">
-          <a href="#contact" className="btn-primary text-sm py-3 px-8">Start a Conversation</a>
-          <a href="#projects" className="text-slate-500 hover:text-green-400 text-sm transition-colors">or see my work →</a>
-        </div>
-
       </div>
     </section>
   );

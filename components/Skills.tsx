@@ -1,240 +1,242 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from 'react';
 
-function FloatingSkills({ categories }: { categories: { name: string; skills: { name: string; level: number }[] }[] }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [positions, setPositions] = useState<{ x: number; y: number; angle: number; radius: number; speed: number; orbitSpeed: number }[]>([]);
-
-  const allSkills = categories.flatMap((cat) => cat.skills);
-
-  useEffect(() => {
-    const total = allSkills.length;
-    const initial = allSkills.map((_, idx) => {
-      const ring = Math.floor(idx / 5);
-      const posInRing = idx % 5;
-      const angle = (posInRing / 5) * Math.PI * 2 + ring * 0.8;
-      const radius = 120 + ring * 80;
-      return {
-        x: 0,
-        y: 0,
-        angle,
-        radius,
-        speed: 0.0003 + Math.random() * 0.0004,
-        orbitSpeed: (idx % 2 === 0 ? 1 : -1) * (0.08 + Math.random() * 0.06),
-      };
-    });
-    setPositions(initial);
-
-    let frameId: number;
-    const animate = () => {
-      setPositions((prev) =>
-        prev.map((p) => ({
-          ...p,
-          angle: p.angle + p.speed,
-        }))
-      );
-      frameId = requestAnimationFrame(animate);
-    };
-    frameId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(frameId);
-  }, []);
-
-  if (positions.length === 0) return null;
-
-  return (
-    <div ref={containerRef} className="relative w-full h-full min-h-[420px]">
-      {allSkills.map((skill, idx) => {
-        if (!positions[idx]) return null;
-        const p = positions[idx];
-        const cx = 50;
-        const cy = 50;
-        const x = cx + Math.cos(p.angle) * (p.radius / 5);
-        const y = cy + Math.sin(p.angle) * (p.radius / 7);
-        return (
-          <span
-            key={skill.name}
-            className="absolute px-3 py-1.5 text-xs font-medium rounded-lg border border-white/[0.06] text-slate-500 bg-white/[0.02]
-                       hover:text-green-400 hover:border-green-500/30 hover:bg-green-500/[0.06]
-                       hover:shadow-[0_0_24px_rgba(34,197,94,0.12)] transition-all duration-500 cursor-default whitespace-nowrap"
-            style={{
-              left: `${x}%`,
-              top: `${y}%`,
-              transform: "translate(-50%, -50%)",
-            }}
-          >
-            {skill.name}
-          </span>
-        );
-      })}
-      {/* Center glow */}
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-green-500/[0.03] rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-        <p className="text-slate-600 text-sm font-mono text-center">← Pick a category<br/><span className="text-slate-700 text-xs">to explore skills</span></p>
-      </div>
-    </div>
-  );
-}
+// Skill Data
+const skills = [
+  "PHP", "Laravel", "React", "Node.js", "Python", "SQL",
+  "MySQL", "MongoDB", "Blade", "Tailwind", "Bootstrap",
+  "Git", "GitHub", "Figma", "Postman", "Express.js"
+];
 
 export default function Skills() {
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const itemsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const categories = [
-    {
-      name: "Languages",
-      icon: "{ }",
-      skills: [
-        { name: "JavaScript", level: 95 },
-        { name: "TypeScript", level: 92 },
-        { name: "Python", level: 85 },
-        { name: "HTML/CSS", level: 98 },
-        { name: "SQL", level: 80 },
-      ],
-    },
-    {
-      name: "Frameworks",
-      icon: "⚛",
-      skills: [
-        { name: "React", level: 95 },
-        { name: "Next.js", level: 93 },
-        { name: "Node.js", level: 90 },
-        { name: "Express", level: 88 },
-        { name: "TailwindCSS", level: 95 },
-      ],
-    },
-    {
-      name: "Tools",
-      icon: "⚙",
-      skills: [
-        { name: "Git", level: 92 },
-        { name: "Docker", level: 82 },
-        { name: "AWS", level: 78 },
-        { name: "Vercel", level: 90 },
-        { name: "Figma", level: 75 },
-      ],
-    },
-    {
-      name: "Databases",
-      icon: "◢",
-      skills: [
-        { name: "PostgreSQL", level: 88 },
-        { name: "MongoDB", level: 85 },
-        { name: "Redis", level: 78 },
-        { name: "Prisma", level: 86 },
-        { name: "Firebase", level: 80 },
-      ],
-    },
-  ];
+  // Physics State (Refs for performance - no re-renders)
+  const state = useRef({
+    isDragging: false,
+    rotation: { x: 0, y: 0 },
+    momentum: { x: 0.5, y: 0.5 },
+    lastMouse: { x: 0, y: 0 }
+  });
 
-  const selected = activeCategory
-    ? categories.find((c) => c.name === activeCategory)
-    : null;
+  // Particle System State
+  const particles = useRef<{ x: number, y: number, vx: number, vy: number, size: number }[]>([]);
+
+  // Fibonacci Sphere Config
+  const radius = 220;
+  const phi = Math.PI * (3 - Math.sqrt(5));
+
+  // Init Particles
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+
+    const resize = () => {
+      if (canvas.parentElement) {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight;
+      }
+    };
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Create initial particles (Increased count and size for visibility)
+    const particleCount = 70; // Increased from 40
+    particles.current = Array.from({ length: particleCount }).map(() => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      size: Math.random() * 3 + 1 // Increased size
+    }));
+
+    return () => window.removeEventListener('resize', resize);
+  }, []);
+
+  // Physics Loop (Direct DOM Manipulation + Canvas Draw)
+  useEffect(() => {
+    let animationFrame: number;
+
+    const animate = () => {
+      const { isDragging, rotation, momentum } = state.current;
+
+      // --- Sphere Physics ---
+      if (!isDragging) {
+        // Apply momentum
+        rotation.x += momentum.x;
+        rotation.y += momentum.y;
+
+        // Friction
+        momentum.x *= 0.98;
+        momentum.y *= 0.98;
+
+        // Min speed to keep it alive
+        if (Math.abs(momentum.x) < 0.05) momentum.x = momentum.x > 0 ? 0.05 : -0.05;
+        if (Math.abs(momentum.y) < 0.05) momentum.y = momentum.y > 0 ? 0.05 : -0.05;
+      }
+
+      // Update Sphere Rotation
+      if (containerRef.current) {
+        containerRef.current.style.transform = `rotateX(${rotation.x.toFixed(2)}deg) rotateY(${rotation.y.toFixed(2)}deg)`;
+      }
+
+      // Update Items (Counter-rotation & Depth)
+      itemsRef.current.forEach((item, i) => {
+        if (!item) return;
+
+        // Calculate original 3D position
+        const y = 1 - (i / (skills.length - 1)) * 2;
+        const radiusAtY = Math.sqrt(1 - y * y);
+        const theta = phi * i;
+        const x = Math.cos(theta) * radiusAtY;
+        const z = Math.sin(theta) * radiusAtY; // Static Z relative to sphere center
+
+        // Rotation matrix approximation for simpler depth sorting
+        // We need the *rotated* Z to calculate depth.
+        const radX = (rotation.x * Math.PI) / 180;
+        const radY = (rotation.y * Math.PI) / 180;
+
+        // 1. Rotate around X
+        // const y1 = y * Math.cos(radX) - z * Math.sin(radX);
+        const z1 = y * Math.sin(radX) + z * Math.cos(radX);
+
+        // 2. Rotate around Y
+        const z2 = z1 * Math.cos(radY) - x * Math.sin(radY);
+
+        // z2 is roughly our depth (-1 to 1)
+        const depth = z2;
+        const opacity = Math.max(0.15, (depth + 1.2) / 2.2);
+        const scale = (0.6 + opacity * 0.4).toFixed(3);
+
+        // Update Item Style directly
+        item.style.opacity = opacity.toFixed(2);
+        item.style.transform = `translate3d(${x * radius}px, ${y * radius}px, ${z * radius}px) rotateY(${-rotation.y}deg) rotateX(${-rotation.x}deg) scale(${scale})`;
+        item.style.zIndex = Math.floor(opacity * 100).toString();
+      });
+
+      // --- Background Particle Animation ---
+      const canvas = canvasRef.current;
+      const ctx = canvas?.getContext('2d');
+      if (canvas && ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Brighter Green for higher visibility
+        ctx.fillStyle = 'rgba(74, 222, 128, 0.5)';
+        ctx.strokeStyle = 'rgba(74, 222, 128, 0.2)'; // More visible lines
+
+        particles.current.forEach((p, i) => {
+          // Move
+          p.x += p.vx;
+          p.y += p.vy;
+
+          // Wrap around
+          if (p.x < 0) p.x = canvas.width;
+          if (p.x > canvas.width) p.x = 0;
+          if (p.y < 0) p.y = canvas.height;
+          if (p.y > canvas.height) p.y = 0;
+
+          // Draw Particle
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Connect nearby particles
+          for (let j = i + 1; j < particles.current.length; j++) {
+            const p2 = particles.current[j];
+            const dx = p.x - p2.x;
+            const dy = p.y - p2.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 160) { // Increased connection distance
+              ctx.beginPath();
+              ctx.lineWidth = 1 - dist / 160;
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.stroke();
+            }
+          }
+        });
+      }
+
+      animationFrame = requestAnimationFrame(animate);
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
+  }, []);
+
+  // Event Handlers
+  const handleStart = (clientX: number, clientY: number) => {
+    state.current.isDragging = true;
+    state.current.lastMouse = { x: clientX, y: clientY };
+  };
+
+  const handleMove = (clientX: number, clientY: number) => {
+    if (!state.current.isDragging) return;
+    const deltaX = clientX - state.current.lastMouse.x;
+    const deltaY = clientY - state.current.lastMouse.y;
+
+    state.current.rotation.y += deltaX * 0.5;
+    state.current.rotation.x -= deltaY * 0.5;
+
+    state.current.momentum = { x: -deltaY * 0.1, y: deltaX * 0.1 };
+    state.current.lastMouse = { x: clientX, y: clientY };
+  };
+
+  const handleEnd = () => {
+    state.current.isDragging = false;
+  };
 
   return (
-    <section id="skills" className="min-h-screen flex items-center px-6 py-20">
-      <div className="container mx-auto max-w-5xl">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-16">
-          <span className="text-green-400 font-mono text-xs tracking-wider">02.</span>
-          <h2 className="text-2xl font-bold text-white">Skills &amp; Tools</h2>
-          <div className="flex-1 h-px bg-white/[0.06]"></div>
-        </div>
+    <section
+      id="skills"
+      className="min-h-screen flex flex-col items-center justify-center bg-black overflow-hidden py-20 cursor-grab active:cursor-grabbing relative"
+      onMouseDown={(e) => handleStart(e.clientX, e.clientY)}
+      onMouseMove={(e) => handleMove(e.clientX, e.clientY)}
+      onMouseUp={handleEnd}
+      onMouseLeave={handleEnd}
+      onTouchStart={(e) => handleStart(e.touches[0].clientX, e.touches[0].clientY)}
+      onTouchMove={(e) => handleMove(e.touches[0].clientX, e.touches[0].clientY)}
+      onTouchEnd={handleEnd}
+    >
+      {/* Background Canvas */}
+      <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none opacity-60 z-0" /> {/* Increased Opacity */}
 
-        <div className="grid md:grid-cols-12 gap-8">
-          {/* Left: Category selector */}
-          <div className="md:col-span-4 space-y-3">
-            {categories.map((cat) => {
-              const isActive = activeCategory === cat.name;
-              return (
-                <button
-                  key={cat.name}
-                  onClick={() => setActiveCategory(isActive ? null : cat.name)}
-                  className={`w-full text-left p-5 rounded-xl border transition-all duration-300 group cursor-pointer
-                    ${isActive
-                      ? "bg-green-500/[0.08] border-green-500/30 shadow-[0_0_30px_rgba(34,197,94,0.08)]"
-                      : "bg-white/[0.02] border-white/[0.06] hover:border-green-500/15 hover:bg-white/[0.04]"
-                    }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className={`font-mono text-lg transition-colors ${isActive ? "text-green-400" : "text-slate-600 group-hover:text-slate-400"}`}>
-                        {cat.icon}
-                      </span>
-                      <span className={`font-semibold transition-colors ${isActive ? "text-green-400" : "text-white"}`}>
-                        {cat.name}
-                      </span>
-                    </div>
-                    <span className={`text-xs font-mono transition-colors ${isActive ? "text-green-500/60" : "text-slate-600"}`}>
-                      {cat.skills.length}
-                    </span>
-                  </div>
-                  {/* Mini bar preview */}
-                  <div className="flex gap-1 mt-3">
-                    {cat.skills.map((s) => (
-                      <div key={s.name} className="flex-1 h-1 rounded-full overflow-hidden bg-white/[0.04]">
-                        <div
-                          className={`h-full rounded-full transition-all duration-700 ${isActive ? "bg-green-500" : "bg-white/10"}`}
-                          style={{ width: `${isActive ? s.level : 30}%` }}
-                        ></div>
-                      </div>
-                    ))}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+      <div className="text-center mb-12 z-10 pointer-events-none relative">
+        <span className="text-green-500 font-mono text-xs tracking-widest uppercase">02. Tech Stack</span>
+        <h2 className="text-4xl md:text-5xl font-bold text-white mt-2">Quantum Core</h2>
+        <p className="text-zinc-500 mt-2 text-sm">Drag to rotate ecosystem</p>
+      </div>
 
-          {/* Right: Skill detail panel */}
-          <div className="md:col-span-8">
-            {selected ? (
-              <div className="space-y-1">
-                {selected.skills.map((skill, idx) => {
-                  const isHovered = hoveredSkill === skill.name;
-                  return (
-                    <div
-                      key={skill.name}
-                      onMouseEnter={() => setHoveredSkill(skill.name)}
-                      onMouseLeave={() => setHoveredSkill(null)}
-                      className="group relative p-5 rounded-xl border border-transparent hover:border-green-500/15 hover:bg-white/[0.02] transition-all duration-300"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <span className="text-green-500/40 font-mono text-xs">0{idx + 1}</span>
-                          <span className={`font-medium transition-colors ${isHovered ? "text-green-400" : "text-white"}`}>
-                            {skill.name}
-                          </span>
-                        </div>
-                        <span className={`font-mono text-sm font-bold transition-colors ${isHovered ? "text-green-400" : "text-slate-500"}`}>
-                          {skill.level}%
-                        </span>
-                      </div>
-                      {/* Skill bar */}
-                      <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-700 ease-out relative"
-                          style={{
-                            width: `${skill.level}%`,
-                            background: isHovered
-                              ? "linear-gradient(90deg, #22c55e, #4ade80)"
-                              : "linear-gradient(90deg, rgba(34,197,94,0.5), rgba(34,197,94,0.3))",
-                          }}
-                        >
-                          {isHovered && (
-                            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-green-400 shadow-[0_0_10px_rgba(34,197,94,0.6)]"></div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+      <div className="relative w-[300px] h-[300px] md:w-[500px] md:h-[500px] perspective-1000 z-10">
+        <div 
+          ref={containerRef}
+          className="absolute inset-0 w-full h-full preserve-3d will-change-transform"
+          style={{ transformStyle: 'preserve-3d' }}
+        >
+          {skills.map((skill, i) => (
+            <div
+              key={skill}
+              ref={(el) => { itemsRef.current[i] = el; }}
+              className="absolute left-1/2 top-1/2 flex items-center justify-center will-change-transform"
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              {/* 3D Orb Effect */}
+              <div className="relative px-5 py-3 rounded-full bg-gradient-to-br from-white/10 to-black/80 backdrop-blur-md border border-white/10 shadow-[inset_0_0_20px_rgba(0,0,0,0.5),0_0_15px_rgba(0,0,0,0.5)] group hover:from-green-500/20 hover:to-green-900/40 hover:border-green-500/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.4)] transition-colors duration-300">
+                <span className="text-white font-mono text-sm md:text-base font-bold whitespace-nowrap text-shadow pointer-events-none">{skill}</span>
               </div>
-            ) : (
-              <FloatingSkills categories={categories} />
-            )}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
+
+      <style jsx>{`
+        .perspective-1000 { perspective: 1000px; }
+        .preserve-3d { transform-style: preserve-3d; }
+        .text-shadow { text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+      `}</style>
     </section>
   );
 }

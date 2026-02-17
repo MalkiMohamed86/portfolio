@@ -4,6 +4,7 @@ import Projects from "@/components/Projects";
 import Skills from "@/components/Skills";
 import Contact from "@/components/Contact";
 import Navigation from "@/components/Navigation";
+import FloatingCTA from "@/components/FloatingCTA";
 
 export default function Home() {
   return (
@@ -11,9 +12,13 @@ export default function Home() {
       <Navigation />
       <Hero />
       <About />
-      <Skills />
       <Projects />
+      <Skills />
       <Contact />
+      <FloatingCTA />
     </main>
   );
 }
+
+
+

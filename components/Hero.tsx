@@ -1,184 +1,486 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+
+// Expanded Content Files
+const files = {
+  "bio.tsx": {
+    lang: "tsx",
+    content: `
+import { Experience, Philosophy } from "./types";
+
+const Developer = {
+  name: "Malki Mohamed",
+  role: "Full-Stack Developer",
+  location: "Azrou, Morocco",
+  
+  philosophy: [
+    "Clean Code",
+    "System Conception",
+    "User-Centric Design",
+    "Scalable Architecture"
+  ],
+
+  experience: [
+    { company: "AUI", role: "Frontend Intern", year: "Mar 2025" },
+    { company: "Projects", role: "Online Exams App", year: "Apr 2025" },
+  ],
+
+  status: "🟢 Seeking new opportunities"
+};
+
+export default Developer;
+    `,
+  },
+  "stack.json": {
+    lang: "json",
+    content: `
+{
+  "frontend": {
+    "frameworks": ["React", "Blade"],
+    "styling": ["Tailwind CSS", "Bootstrap", "Material UI"],
+    "visuals": ["Figma", "Canva"]
+  },
+  "backend": {
+    "frameworks": ["Laravel 11/12", "Express.js"],
+    "runtime": ["Node.js", "PHP", "Python"],
+    "database": ["MySQL", "MongoDB"]
+  },
+  "tools": {
+    "devops": ["Git", "GitHub", "Postman"],
+    "office": ["Excel", "Word", "PowerPoint"]
+  }
+}
+    `,
+  },
+  "README.md": {
+    lang: "markdown",
+    content: `
+# Portfolio v2.0 🚀
+
+Welcome to my digital workspace. This portfolio is built with the latest web technologies to showcase my work and skills.
+
+## Features
+- ⚡ **Next.js 14** (App Router)
+- 🎨 **Tailwind CSS** (Custom Design System)
+- 🎭 **Framer Motion** (Smooth Animations)
+- 📝 **TypeScript** (Type Safety)
+
+## Getting Started
+To view my projects, simply scroll down or type \`npm run start\` in the terminal below.
+
+## Contact
+Feel free to reach out via the contact form or email directly.
+    `,
+  },
+};
+
+type FileName = keyof typeof files;
+
+const SyntaxHighlight = ({ code, language }: { code: string; language: string }) => {
+  // GitHub Dark Theme Colors
+  // Strings: #a5d6ff (blue-300)
+  // Keywords: #ff7b72 (red-400)
+  // Functions: #d2a8ff (purple-400)
+  // Types/Classes: #ffa657 (orange-300)
+  // Comments: #8b949e (zinc-500)
+  // Numbers: #79c0ff (blue-200)
+
+  if (language === "json") {
+    const parts = code.split(/(".*?"|:|\{|\}|\[|\]|,)/g);
+    return (
+      <>
+        {parts.map((part, i) => {
+          if (part.startsWith('"')) {
+            const isKey = parts[i + 1]?.trim() === ":";
+            // Keys in JSON usually blue-ish or plain, Values are strings (blue-300)
+            return <span key={i} className={isKey ? "text-indigo-200" : "text-blue-300"}>{part}</span>;
+          }
+          if (["{", "}", "[", "]", ","].includes(part)) return <span key={i} className="text-zinc-400">{part}</span>;
+          return <span key={i} className="text-zinc-300">{part}</span>;
+        })}
+      </>
+    );
+  }
+
+  if (language === "tsx") {
+    // Improved regex to handle comments better
+    const parts = code.split(/(\/\/.*$|'.*?'|".*?"|`[\s\S]*?`|\b(import|from|const|export|default|return|interface|type|async|await)\b|[{}();,])/gm);
+    return (
+      <>
+        {parts.map((part, i) => {
+          if (!part) return null;
+          // Comments
+          if (part.trim().startsWith("//")) return <span key={i} className="text-zinc-500 italic">{part}</span>;
+
+          // Strings
+          if (part.startsWith("'") || part.startsWith('"') || part.startsWith("`")) return <span key={i} className="text-blue-300">{part}</span>;
+
+          // Keywords (Red/Pink in GitHub Dark)
+          if (["import", "from", "const", "export", "default", "return", "interface", "type"].includes(part))
+            return <span key={i} className="text-red-400">{part}</span>;
+
+          // Punctuation
+          if (["{", "}", "(", ")", ";", ","].includes(part)) return <span key={i} className="text-zinc-400">{part}</span>;
+
+          // Classes / Types (Orange)
+          if (part.trim() === "Developer" || part.trim() === "Experience" || part.trim() === "Philosophy")
+            return <span key={i} className="text-orange-300">{part}</span>;
+
+          // Object Keys (Blue-ish in GitHub or Purple if function call)
+          if (part.trim() === "name" || part.trim() === "role" || part.trim() === "location")
+            return <span key={i} className="text-purple-300">{part}</span>;
+
+          // Default text
+          return <span key={i} className="text-zinc-200">{part}</span>;
+        })}
+      </>
+    );
+  }
+
+  if (language === "markdown") {
+    const parts = code.split(/(# .*$|## .*$|- \*\*.*?\*\*|`.*?`)/gm);
+    return (
+      <>
+        {parts.map((part, i) => {
+          if (part.startsWith("# ")) return <span key={i} className="text-blue-400 font-bold">{part}</span>;
+          if (part.startsWith("## ")) return <span key={i} className="text-blue-400 font-bold">{part}</span>;
+          if (part.startsWith("- **")) return <span key={i} className="text-purple-300">{part}</span>;
+          if (part.startsWith("`")) return <span key={i} className="text-zinc-400 bg-zinc-800 px-1 rounded">{part}</span>;
+          return <span key={i} className="text-zinc-300">{part}</span>;
+        })}
+      </>
+    )
+  }
+
+  return <>{code}</>;
+};
 
 export default function Hero() {
-  const [time, setTime] = useState("");
+  const [activeFile, setActiveFile] = useState<FileName>("bio.tsx");
+  const [typedContent, setTypedContent] = useState("");
+  const [isTyping, setIsTyping] = useState(true);
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [terminalOpen, setTerminalOpen] = useState(true);
+  const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
 
+  // Responsive: Close sidebar on mobile
   useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setTime(
-        now.toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          timeZoneName: "short",
-        })
-      );
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 60000);
-    return () => clearInterval(interval);
+    if (window.innerWidth < 1024) {
+      setShowSidebar(false);
+      setTerminalOpen(false); // Also close terminal on mobile to save space
+    }
   }, []);
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Typing effect
+  useEffect(() => {
+    setIsTyping(true);
+    setTypedContent("");
+    const content = files[activeFile].content.trim();
+    let index = 0;
+
+    // Typing speed based on content length
+    const speed = content.length > 300 ? 5 : 15;
+
+    const interval = setInterval(() => {
+      setTypedContent((prev) => content.slice(0, index));
+      index++;
+      if (index > content.length) {
+        clearInterval(interval);
+        setIsTyping(false);
+      }
+    }, speed);
+
+    return () => clearInterval(interval);
+  }, [activeFile]);
+
+  // Terminal Build Simulation
+  useEffect(() => {
+    const logs = [
+      "> portfolio-v2@1.0.0 dev",
+      "> next dev",
+      "",
+      "ready - started server on 0.0.0.0:3000, url: http://localhost:3000",
+      "info  - loaded env from .env.local",
+      "event - compiled client and server successfully in 1241 ms (156 modules)",
+      "wait  - compiling...",
+      "event - compiled successfully",
+      "> Ready for user interaction..."
+    ];
+
+    let delay = 0;
+    setTerminalLogs([]);
+
+    logs.forEach((log, i) => {
+      delay += Math.random() * 500 + 200;
+      setTimeout(() => {
+        setTerminalLogs(prev => [...prev, log]);
+        // Auto-scroll terminal
+        const term = document.getElementById("terminal-body");
+        if (term) term.scrollTop = term.scrollHeight;
+      }, delay);
+    });
+  }, []);
+
+  const handleRun = () => {
+    document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
-    <section id="home" className="relative min-h-screen flex items-center px-6 py-24 overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 -z-10">
-        {/* Green glow at top-right */}
-        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-green-500/[0.04] rounded-full blur-[100px]"></div>
-        {/* Dim green glow bottom-left */}
-        <div className="absolute -bottom-40 -left-40 w-[400px] h-[400px] bg-green-500/[0.02] rounded-full blur-[100px]"></div>
-        {/* Dot grid */}
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage: "radial-gradient(rgba(34,197,94,0.8) 1px, transparent 1px)",
-            backgroundSize: "32px 32px",
-          }}
-        ></div>
-      </div>
+    <section id="home" className="relative min-h-screen flex items-center justify-center p-6 bg-black overflow-hidden pt-24">
 
-      <div className="container mx-auto max-w-6xl">
-        {/* Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 auto-rows-auto">
+      {/* Static Background Decor */}
+      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03]"></div>
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-green-500/5 rounded-full blur-[120px]"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[120px]"></div>
 
-          {/* ─── Card 1: Identity (Large) ─── */}
-          <div className="md:col-span-8 bento-card p-8 md:p-10 animate-fade-in-up">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-2.5 h-2.5 rounded-full bg-green-500" style={{ animation: "pulse-green 2s infinite" }}></div>
-              <span className="text-green-400 text-sm font-medium tracking-wide">Available for hire</span>
+      <div className="container mx-auto max-w-6xl z-10 flex flex-col lg:flex-row gap-12 items-start lg:items-center h-full">
+
+        {/* Left: Intro Text */}
+        <div className="lg:w-5/12 space-y-8">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-zinc-400">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              v2.0.0 Stable
             </div>
-            <p className="text-sm text-slate-500 mb-3 font-mono tracking-wider uppercase">Hello, I&apos;m</p>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.05] mb-4">
-              <span className="text-white">John</span>{" "}
-              <span className="text-gradient">Doe</span>
-              <span className="text-green-500 inline-block ml-1" style={{ animation: "blink 1s step-end infinite" }}>_</span>
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-[1.1]">
+              Builder of <br />
+              <span className="text-zinc-600">Digital Worlds</span>
             </h1>
-            <p className="text-lg md:text-xl text-slate-400 max-w-lg leading-relaxed">
-              Full-stack engineer who turns complex problems into{" "}
-              <span className="text-green-400 font-medium">clean, scalable products</span> that
-              users love and businesses rely on.
+            <p className="text-lg text-zinc-400 leading-relaxed max-w-md">
+              I craft high-performance applications with focusing on clean code, scalability, and exceptional user experiences.
             </p>
           </div>
 
-          {/* ─── Card 2: Status (Small) ─── */}
-          <div className="md:col-span-4 bento-card flex flex-col justify-between animate-fade-in-up-d1">
-            <div>
-              <p className="text-xs text-slate-600 font-mono uppercase tracking-widest mb-4">Current Status</p>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-sm">Location</span>
-                  <span className="text-slate-300 text-sm font-medium">San Francisco, CA</span>
+          <div className="flex gap-4">
+            <button onClick={handleRun} className="px-8 py-3 bg-white text-black font-semibold rounded-lg hover:bg-zinc-200 transition-colors flex items-center gap-2 group">
+              Inside Look
+              <span className="group-hover:translate-x-1 transition-transform">→</span>
+            </button>
+            <a href="#contact" className="px-8 py-3 bg-white/5 text-white font-medium rounded-lg hover:bg-white/10 border border-white/10 transition-colors">
+              Contact
+            </a>
+          </div>
+
+          {/* Social Links */}
+          <div className="flex items-center gap-6 text-zinc-500">
+            <a href="https://linkedin.com" target="_blank" className="hover:text-white transition-colors flex items-center gap-2 group">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>
+              <span className="text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity -ml-2 group-hover:ml-0">LinkedIn</span>
+            </a>
+            <a href="https://github.com" target="_blank" className="hover:text-white transition-colors flex items-center gap-2 group">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.04-.015-2.04-3.34.72-4.045-1.61-4.045-1.61-.555-1.41-1.35-1.785-1.35-1.785-1.095-.75.075-.735.075-.735 1.215.09 1.86 1.245 1.86 1.245 1.08 1.86 2.835 1.32 3.525 1.005.105-.78.42-1.32.765-1.62-2.67-.3-5.475-1.335-5.475-5.94 0-1.32.465-2.385 1.245-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3.015-.405 1.02.0 2.055.135 3.015.405 2.3-1.545 3.285-1.23 3.285-1.23.675 1.65.24 2.88.135 3.18.78.84 1.245 1.905 1.245 3.225 0 4.62-2.82 5.625-5.49 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225 .69 .825 .57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" /></svg>
+              <span className="text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity -ml-2 group-hover:ml-0">GitHub</span>
+            </a>
+            <a href="mailto:hello@example.com" className="hover:text-white transition-colors flex items-center gap-2 group">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+              <span className="text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity -ml-2 group-hover:ml-0">Email</span>
+            </a>
+            <a href="#" className="hover:text-pink-500 transition-colors flex items-center gap-2 group">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.069-4.85.069-3.204 0-3.584-.012-4.849-.069-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.069-1.644-.069-4.849 0-3.204.012-3.584.069-4.849.149-3.225 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
+              <span className="text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity -ml-2 group-hover:ml-0">Instagram</span>
+            </a>
+          </div>
+
+          {/* Tech Badge Grid */}
+          <div className="pt-4 border-t border-white/5">
+            <p className="text-xs text-zinc-600 font-mono mb-3 uppercase tracking-wider">Powered By</p>
+            <div className="flex gap-4 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-500">
+              {/* Using simple text badges for max compatibility */}
+              <span className="text-xl font-bold text-white">Next.js</span>
+              <span className="text-xl font-bold text-blue-400">React</span>
+              <span className="text-xl font-bold text-blue-500">TS</span>
+              <span className="text-xl font-bold text-cyan-400">Tailwind</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right: Portfolio OS Window */}
+        <div className="lg:w-7/12 w-full lg:h-[600px] h-[500px]">
+          <div className="bg-[#0f0f0f] border border-white/10 rounded-xl overflow-hidden shadow-2xl relative h-full flex flex-col font-mono text-sm">
+
+            {/* Title Bar */}
+            <div className="h-10 bg-[#1a1a1a] border-b border-black flex items-center px-4 justify-between shrink-0">
+              <div className="flex gap-2 group">
+                <div className="w-3 h-3 rounded-full bg-[#ff5f56] group-hover:brightness-75 transition-all"></div>
+                <div className="w-3 h-3 rounded-full bg-[#ffbd2e] group-hover:brightness-75 transition-all"></div>
+                <div className="w-3 h-3 rounded-full bg-[#27c93f] group-hover:brightness-75 transition-all"></div>
+              </div>
+              <div className="text-xs text-zinc-500 flex gap-2">
+                <span>portfolio-v2</span>
+                <span className="text-zinc-700">—</span>
+                <span>{activeFile}</span>
+              </div>
+              <div className="w-14"></div>
+            </div>
+
+            {/* Main Workspace */}
+            <div className="flex flex-1 overflow-hidden relative">
+
+              {/* Activity Bar (Sidebar) */}
+              <div className={`w-12 border-r border-white/5 flex flex-col items-center py-4 gap-6 bg-[#111] shrink-0 z-20`}>
+                <div className={`cursor-pointer transition-colors ${showSidebar ? "text-white" : "text-zinc-600 hover:text-white"}`} onClick={() => setShowSidebar(!showSidebar)} title="Explorer">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
                 </div>
-                <div className="h-px bg-white/[0.04]"></div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-sm">Local time</span>
-                  <span className="text-slate-300 text-sm font-mono">{time || "—"}</span>
+                <a href="https://github.com" target="_blank" className="text-zinc-600 hover:text-white transition-colors" title="Source Control">
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.04-.015-2.04-3.34.72-4.045-1.61-4.045-1.61-.555-1.41-1.35-1.785-1.35-1.785-1.095-.75.075-.735.075-.735 1.215.09 1.86 1.245 1.86 1.245 1.08 1.86 2.835 1.32 3.525 1.005.105-.78.42-1.32.765-1.62-2.67-.3-5.475-1.335-5.475-5.94 0-1.32.465-2.385 1.245-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3.015-.405 1.02.0 2.055.135 3.015.405 2.3-1.545 3.285-1.23 3.285-1.23.675 1.65.24 2.88.135 3.18.78.84 1.245 1.905 1.245 3.225 0 4.62-2.82 5.625-5.49 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225 .69 .825 .57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" /></svg>
+                </a>
+                <div className="flex-1"></div>
+                <div className="text-zinc-600 hover:text-white cursor-pointer" title="Settings">⚙️</div>
+              </div>
+
+              {/* Explorer Panel */}
+              {showSidebar && (
+                <div className="w-48 border-r border-white/5 bg-[#0d0d0d] flex flex-col shrink-0 animate-slide-in-left">
+                  <div className="h-8 flex items-center px-4 text-zinc-500 text-xs font-bold tracking-wider uppercase">Explorer</div>
+                  <div className="flex-1 pt-2">
+                    {/* Open Editors */}
+                    <div className="px-2">
+                      <div className="text-zinc-500 text-[10px] font-bold mb-1 flex items-center gap-1">
+                        <span className="text-[8px]">▼</span> OPEN EDITORS
+                      </div>
+                      {(Object.keys(files) as FileName[]).map((fileName) => (
+                        <div key={fileName} onClick={() => setActiveFile(fileName)} className={`flex items-center gap-2 text-xs px-2 py-1 rounded cursor-pointer ${activeFile === fileName ? "bg-white/5 text-white" : "text-zinc-500 hover:text-zinc-300"}`}>
+                          <span className="opacity-0 group-hover:opacity-100">×</span>
+                          <span>{fileName}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {/* PortFolio Folder */}
+                    <div className="mt-4 px-2">
+                      <div className="text-zinc-500 text-[10px] font-bold mb-1 flex items-center gap-1">
+                        <span className="text-[8px]">▼</span> PORTFOLIO-V2
+                      </div>
+                      <div className="pl-3 space-y-1">
+                        {(Object.keys(files) as FileName[]).map((fileName) => (
+                          <div key={fileName} onClick={() => setActiveFile(fileName)} className={`flex items-center gap-2 text-xs py-0.5 cursor-pointer ${activeFile === fileName ? "text-green-400" : "text-zinc-500 hover:text-zinc-300"}`}>
+                            <span className={fileName.endsWith("tsx") ? "text-blue-400" : fileName.endsWith("json") ? "text-yellow-400" : "text-gray-400"}>📄</span>
+                            {fileName}
+                          </div>
+                        ))}
+                        <div className="flex items-center gap-2 text-xs py-0.5 text-zinc-600">
+                          <span className="text-purple-400">📁</span> node_modules
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="h-px bg-white/[0.04]"></div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500 text-sm">Status</span>
-                  <span className="text-green-400 text-sm font-medium flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>
-                    Open to work
-                  </span>
+              )}
+
+              {/* Editor Area */}
+              <div className="flex-1 flex flex-col min-w-0 bg-[#0a0a0a]">
+                {/* Tabs */}
+                <div className="flex bg-[#0a0a0a] border-b border-black overflow-x-auto shrink-0 scrollbar-hide">
+                  {(Object.keys(files) as FileName[]).map((fileName) => (
+                    <button
+                      key={fileName}
+                      onClick={() => setActiveFile(fileName)}
+                      className={`px-4 py-2.5 text-xs font-mono flex items-center gap-2 border-r border-black min-w-fit transition-all ${activeFile === fileName
+                        ? "bg-[#1e1e1e] text-white border-t-2 border-t-green-500"
+                        : "text-zinc-600 hover:bg-[#151515] hover:text-zinc-400 bg-[#0f0f0f]"
+                        }`}
+                    >
+                      <span className={
+                        fileName.endsWith("tsx") ? "text-blue-400" :
+                          fileName.endsWith("json") ? "text-yellow-400" :
+                            "text-gray-400"
+                      }>
+                        {fileName.endsWith("tsx") ? "TSX" : fileName.endsWith("json") ? "{ }" : "MD"}
+                      </span>
+                      {fileName}
+                      {activeFile === fileName && <span className="text-zinc-500 ml-2 hover:bg-white/10 rounded-full w-4 h-4 flex items-center justify-center">×</span>}
+                    </button>
+                  ))}
                 </div>
+
+                {/* Code View */}
+                <div ref={scrollRef} className="flex-1 p-6 overflow-auto custom-scrollbar relative">
+                  {/* Line Numbers */}
+                  <div className="absolute left-0 top-6 bottom-0 w-12 text-right pr-4 text-zinc-700 select-none pointer-events-none font-mono text-xs leading-relaxed">
+                    {typedContent.split("\n").map((_, i) => <div key={i}>{i + 1}</div>)}
+                  </div>
+
+                  {/* Code Content */}
+                  <div className="ml-8 font-mono text-xs md:text-sm leading-relaxed whitespace-pre-wrap text-zinc-300">
+                    <SyntaxHighlight code={typedContent} language={activeFile.endsWith("json") ? "json" : activeFile.endsWith("tsx") ? "tsx" : "markdown"} />
+                    {isTyping && <span className="animate-pulse inline-block w-2 h-4 bg-green-500 ml-1 align-middle"></span>}
+                  </div>
+                </div>
+
+                {/* Integrated Terminal Panel */}
+                {terminalOpen && (
+                  <div className="h-32 border-t border-white/10 bg-[#0c0c0c] flex flex-col shrink-0">
+                    <div className="h-6 flex items-center justify-between px-3 border-b border-white/5">
+                      <div className="flex gap-4 text-[10px] font-bold text-zinc-500">
+                        <span className="text-white border-b border-white">TERMINAL</span>
+                        <span>OUTPUT</span>
+                        <span>DEBUG CONSOLE</span>
+                      </div>
+                      <div className="cursor-pointer hover:text-white text-zinc-600" onClick={() => setTerminalOpen(false)}>×</div>
+                    </div>
+                    <div id="terminal-body" className="flex-1 p-2 overflow-y-auto font-mono text-[10px] text-zinc-400 space-y-1 custom-scrollbar">
+                      {terminalLogs.map((log, i) => (
+                        <div key={i} className={log.startsWith(">") ? "text-green-500" : "text-zinc-400"}>{log}</div>
+                      ))}
+                      <div className="text-green-500 animate-pulse">_</div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-            {/* Social row */}
-            <div className="flex gap-4 mt-6 pt-4 border-t border-white/[0.04]">
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer"
-                 className="text-slate-600 hover:text-green-400 transition-colors" aria-label="GitHub">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                </svg>
-              </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer"
-                 className="text-slate-600 hover:text-green-400 transition-colors" aria-label="LinkedIn">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                </svg>
-              </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer"
-                 className="text-slate-600 hover:text-green-400 transition-colors" aria-label="Twitter">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                </svg>
-              </a>
-              <a href="mailto:hello@johndoe.com"
-                 className="text-slate-600 hover:text-green-400 transition-colors" aria-label="Email">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                </svg>
-              </a>
-            </div>
-          </div>
 
-          {/* ─── Card 3: Stats ─── */}
-          <div className="md:col-span-3 bento-card text-center flex flex-col justify-center animate-fade-in-up-d2">
-            <p className="text-4xl md:text-5xl font-bold text-gradient mb-1">5+</p>
-            <p className="text-xs text-slate-500 uppercase tracking-widest font-medium">Years Building</p>
-          </div>
-
-          {/* ─── Card 4: Tech Stack Marquee ─── */}
-          <div className="md:col-span-6 bento-card animate-fade-in-up-d3 overflow-hidden">
-            <p className="text-xs text-slate-600 font-mono uppercase tracking-widest mb-4">Tech Stack</p>
-            <div className="flex flex-wrap gap-2">
-              {["React", "Next.js", "TypeScript", "Node.js", "Python", "PostgreSQL", "AWS", "Docker"].map((tech) => (
-                <span
-                  key={tech}
-                  className="px-3 py-1.5 text-sm font-medium rounded-lg bg-white/[0.04] text-slate-400 border border-white/[0.06]
-                             hover:border-green-500/30 hover:text-green-400 hover:bg-green-500/[0.05] transition-all duration-300 cursor-default"
-                >
-                  {tech}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* ─── Card 5: Projects Count ─── */}
-          <div className="md:col-span-3 bento-card text-center flex flex-col justify-center animate-fade-in-up-d4">
-            <p className="text-4xl md:text-5xl font-bold text-gradient mb-1">50+</p>
-            <p className="text-xs text-slate-500 uppercase tracking-widest font-medium">Projects Shipped</p>
-          </div>
-
-          {/* ─── Card 6: CTA ─── */}
-          <div className="md:col-span-7 bento-card p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 animate-fade-in-up-d5">
-            <div>
-              <h2 className="text-lg font-semibold text-white mb-1">Got a project in mind?</h2>
-              <p className="text-sm text-slate-500">Let&apos;s build something that makes an impact.</p>
-            </div>
-            <div className="flex gap-3 shrink-0">
-              <a href="#projects" className="btn-primary text-sm py-3 px-6">
-                See My Work
-              </a>
-              <a href="#contact" className="btn-secondary text-sm py-3 px-6">
-                Contact Me
-              </a>
-            </div>
-          </div>
-
-          {/* ─── Card 7: Approach ─── */}
-          <div className="md:col-span-5 bento-card animate-fade-in-up-d6">
-            <p className="text-xs text-slate-600 font-mono uppercase tracking-widest mb-4">My Approach</p>
-            <div className="space-y-3">
-              {[
-                { num: "01", text: "Understand your business goals" },
-                { num: "02", text: "Design the right architecture" },
-                { num: "03", text: "Build, test, iterate fast" },
-                { num: "04", text: "Ship & support long-term" },
-              ].map((step) => (
-                <div key={step.num} className="flex items-center gap-3 group">
-                  <span className="text-green-500/60 text-xs font-mono group-hover:text-green-400 transition-colors">{step.num}</span>
-                  <span className="text-slate-400 text-sm group-hover:text-slate-300 transition-colors">{step.text}</span>
+            {/* Status Bar */}
+            <div className="h-6 bg-[#007acc] flex items-center px-3 justify-between text-[10px] font-mono text-white shrink-0">
+              <div className="flex gap-3">
+                <div className="flex items-center gap-1 hover:bg-white/10 px-1 rounded cursor-pointer transition-colors" onClick={() => setTerminalOpen(!terminalOpen)}>
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
                 </div>
-              ))}
+                <span className="flex items-center gap-1 font-semibold"><svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg> main*</span>
+                <div className="flex items-center gap-1 cursor-pointer hover:bg-white/10 px-1 rounded transition-colors hidden sm:flex">
+                  <span>⊘ 0</span>
+                  <span>⚠ 0</span>
+                </div>
+              </div>
+              <div className="flex gap-4 items-center">
+                <span className="hidden sm:inline">Ln {typedContent.split('\n').length}, Col 1</span>
+                <span className="hidden sm:inline">UTF-8</span>
+                <span className="hidden sm:inline">{activeFile.endsWith("tsx") ? "TypeScript React" : activeFile.endsWith("json") ? "JSON" : "Markdown"}</span>
+                <div className="flex items-center gap-1 cursor-pointer hover:bg-white/20 px-2 py-0.5 rounded transition-colors bg-white/10" onClick={handleRun}>
+                  <span className="animate-pulse text-yellow-300">⚡</span> Go Live
+                </div>
+                <span className="hidden sm:inline">🔔</span>
+              </div>
             </div>
           </div>
-
         </div>
+
       </div>
+
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #0a0a0a;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #2a2a2a;
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #333;
+        }
+        /* Animation for sidebar slide */
+        @keyframes slideInLeft {
+           from { width: 0; opacity: 0; }
+           to { width: 192px; opacity: 1; }
+        }
+        .animate-slide-in-left {
+           animation: slideInLeft 0.2s ease-out forwards;
+        }
+      `}</style>
     </section>
   );
 }

@@ -1,94 +1,352 @@
+"use client";
+
+import { useState, useEffect, useRef, useCallback } from "react";
+
+const projects = [
+  {
+    id: 1,
+    title: "Online Exams App",
+    subtitle: "Exam Management System",
+    description:
+      "A comprehensive system to manage exams, users, and roles. Features secure authentication, real-time analytics, and anti-cheating measures. Built with Laravel and Blade.",
+    tags: ["Laravel", "Blade", "MySQL", "Tailwind"],
+    status: "Completed",
+    link: "#",
+    accent: "#ef4444",
+    accentRgb: "239,68,68",
+  },
+  {
+    id: 2,
+    title: "AUI Student Dashboard",
+    subtitle: "Internal Dashboard",
+    description:
+      "Frontend for an internal dashboard using React and Material UI. Features Outlook login integration, student search, and visual enrollment statistics.",
+    tags: ["React", "Material UI", "API", "Auth"],
+    status: "Internship",
+    link: "#",
+    accent: "#3b82f6",
+    accentRgb: "59,130,246",
+  },
+];
+
+const CYCLE_DURATION = 5000;
+
 export default function Projects() {
-  const projects = [
-    {
-      title: "Halcyon Theme",
-      description: "A minimal, dark blue theme for VS Code, Sublime Text, Atom, iTerm, and more. Available on Visual Studio Marketplace, Package Control, Atom Package Manager, and npm.",
-      tech: ["VS Code", "Sublime Text", "Atom", "iTerm2", "Hyper"],
-      github: "https://github.com",
-      external: "https://demo.com",
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
+  const [animKey, setAnimKey] = useState(0);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const progressInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startTime = useRef(Date.now());
+
+  // Auto-cycle projects
+  useEffect(() => {
+    if (isHovering) {
+      if (progressInterval.current) clearInterval(progressInterval.current);
+      return;
+    }
+
+    startTime.current = Date.now() - progress * CYCLE_DURATION;
+
+    progressInterval.current = setInterval(() => {
+      const elapsed = Date.now() - startTime.current;
+      const pct = elapsed / CYCLE_DURATION;
+
+      if (pct >= 1) {
+        setActiveIndex((prev) => (prev + 1) % projects.length);
+        setAnimKey((k) => k + 1);
+        startTime.current = Date.now();
+        setProgress(0);
+      } else {
+        setProgress(pct);
+      }
+    }, 30);
+
+    return () => {
+      if (progressInterval.current) clearInterval(progressInterval.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isHovering, activeIndex]);
+
+  const handleSelectProject = useCallback((index: number) => {
+    setActiveIndex(index);
+    setAnimKey((k) => k + 1);
+    setProgress(0);
+    startTime.current = Date.now();
+  }, []);
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!cardRef.current) return;
+      const rect = cardRef.current.getBoundingClientRect();
+      setMousePos({
+        x: (e.clientX - rect.left) / rect.width,
+        y: (e.clientY - rect.top) / rect.height,
+      });
     },
-    {
-      title: "Spotify Profile",
-      description: "A web app for visualizing personalized Spotify data. View your top artists, top tracks, recently played tracks, and detailed audio information about each track.",
-      tech: ["React", "Styled Components", "Express", "Spotify API", "Heroku"],
-      github: "https://github.com",
-      external: "https://demo.com",
-    },
-    {
-      title: "Build a Spotify Connected App",
-      description: "Video course that teaches how to build a web app with the Spotify Web API. Topics covered include REST APIs, user auth flows, Node, Express, React, and more.",
-      tech: ["React", "Express", "Spotify API", "Styled Components"],
-      github: "https://github.com",
-      external: "https://demo.com",
-    },
-  ];
+    []
+  );
+
+  const active = projects[activeIndex];
 
   return (
-    <section id="projects" className="py-24 px-6">
-      <div className="container mx-auto max-w-4xl">
-        {/* Section Header */}
-        <div className="flex items-center gap-4 mb-12">
-          <h2 className="text-2xl font-bold text-white">Some Things I&apos;ve Built</h2>
-          <div className="flex-1 h-px bg-white/[0.06]"></div>
+    <section
+      id="projects"
+      className="min-h-screen bg-black relative flex flex-col justify-center py-20 px-6 overflow-hidden"
+    >
+      {/* Background Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-green-500/20 to-transparent" />
+        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-green-500/20 to-transparent" />
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage:
+              "radial-gradient(#22c55e 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }}
+        />
+      </div>
+
+      <div className="container mx-auto max-w-6xl relative z-10">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-16">
+          <span className="text-green-400 font-mono text-xs tracking-wider">
+            03.
+          </span>
+          <h2 className="text-3xl font-bold text-white">Featured Work</h2>
+          <div className="flex-1 h-px bg-white/[0.06]" />
         </div>
 
-        {/* Featured Projects */}
-        <div className="space-y-24">
-          {projects.map((project, idx) => (
-            <div 
-              key={idx} 
-              className={`relative grid md:grid-cols-12 gap-4 items-center ${idx % 2 === 1 ? 'md:text-right' : ''}`}
-            >
-              {/* Project Image Placeholder */}
-              <div className={`md:col-span-7 ${idx % 2 === 1 ? 'md:order-2' : ''}`}>
-                <a href={project.external} target="_blank" rel="noopener noreferrer" className="block group">
-                  <div className="relative overflow-hidden rounded-lg bg-green-500/[0.05] aspect-video border border-white/[0.06]">
-                    <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent group-hover:from-green-500/[0.06] transition-all duration-300"></div>
-                    <div className="absolute inset-0 flex items-center justify-center text-green-500/30 group-hover:text-green-500/50 transition-colors">
-                      <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                      </svg>
+        {/* Main Split Layout */}
+        <div className="flex flex-col lg:flex-row gap-0 lg:gap-12 items-stretch min-h-[480px]">
+          {/* ─── Left: Project Selector ─── */}
+          <div className="lg:w-[280px] flex-shrink-0 flex flex-col justify-between">
+            {/* Project List */}
+            <div className="space-y-1">
+              {projects.map((project, index) => {
+                const isActive = index === activeIndex;
+                return (
+                  <button
+                    key={project.id}
+                    onClick={() => handleSelectProject(index)}
+                    className={`w-full text-left group relative flex items-center gap-4 py-4 px-4 rounded-xl transition-all duration-500 ${isActive
+                      ? "bg-white/[0.04]"
+                      : "hover:bg-white/[0.02]"
+                      }`}
+                  >
+                    {/* Active bar indicator */}
+                    <div
+                      className={`absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-full transition-all duration-500 ${isActive
+                        ? "h-8 opacity-100"
+                        : "h-0 opacity-0 group-hover:h-4 group-hover:opacity-40"
+                        }`}
+                      style={{ background: active.accent }}
+                    />
+
+                    {/* Number */}
+                    <span
+                      className={`font-mono text-xs transition-all duration-300 ${isActive
+                        ? "text-green-400"
+                        : "text-white/20 group-hover:text-white/40"
+                        }`}
+                    >
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+
+                    {/* Title + Subtitle */}
+                    <div className="flex-1 min-w-0">
+                      <h3
+                        className={`text-base font-semibold transition-all duration-300 truncate ${isActive
+                          ? "text-white"
+                          : "text-white/40 group-hover:text-white/70"
+                          }`}
+                      >
+                        {project.title}
+                      </h3>
+                      <p
+                        className={`text-xs font-mono transition-all duration-300 truncate ${isActive
+                          ? "text-green-400/70"
+                          : "text-white/15 group-hover:text-white/30"
+                          }`}
+                      >
+                        {project.subtitle}
+                      </p>
                     </div>
-                  </div>
-                </a>
+
+                    {/* Arrow */}
+                    <span
+                      className={`text-sm transition-all duration-300 ${isActive
+                        ? "text-green-400 translate-x-0 opacity-100"
+                        : "text-white/20 -translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-50"
+                        }`}
+                    >
+                      →
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Progress Bar + Counter */}
+            <div className="mt-8 px-4 hidden lg:block">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-mono text-white/30 uppercase tracking-widest">
+                  Auto-cycling
+                </span>
+                <span className="text-[10px] font-mono text-white/30">
+                  {activeIndex + 1}/{projects.length}
+                </span>
               </div>
-              
-              {/* Project Content */}
-              <div className={`md:col-span-6 md:absolute ${idx % 2 === 1 ? 'md:left-0' : 'md:right-0'} z-10`}>
-                <p className="text-green-400 text-sm font-medium mb-2 font-mono">Featured Project</p>
-                <h3 className="text-xl font-bold text-white mb-4">
-                  <a href={project.external} target="_blank" rel="noopener noreferrer" className="hover:text-green-400 transition-colors">
-                    {project.title}
-                  </a>
-                </h3>
-                
-                <div className="bg-[#111] rounded-lg p-6 shadow-lg mb-4 border border-white/[0.06]">
-                  <p className="text-slate-400 text-sm leading-relaxed">
-                    {project.description}
-                  </p>
-                </div>
-                
-                <ul className={`flex flex-wrap gap-3 text-xs text-slate-500 font-mono mb-4 ${idx % 2 === 1 ? 'md:justify-start' : 'md:justify-end'}`}>
-                  {project.tech.map((tech, techIdx) => (
-                    <li key={techIdx}>{tech}</li>
-                  ))}
-                </ul>
-                
-                <div className={`flex gap-4 ${idx % 2 === 1 ? 'md:justify-start' : 'md:justify-end'}`}>
-                  <a href={project.github} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-green-400 transition-colors">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                    </svg>
-                  </a>
-                  <a href={project.external} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-green-400 transition-colors">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                    </svg>
-                  </a>
-                </div>
+              <div className="h-[2px] bg-white/[0.06] rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-none"
+                  style={{
+                    width: `${progress * 100}%`,
+                    background: active.accent,
+                    boxShadow: `0 0 8px rgba(${active.accentRgb},0.5)`,
+                  }}
+                />
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* ─── Right: Immersive Detail Card ─── */}
+          <div
+            ref={cardRef}
+            className="flex-1 relative rounded-3xl border border-white/[0.06] bg-white/[0.02] overflow-hidden cursor-default min-h-[400px] lg:min-h-0"
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => {
+              setIsHovering(false);
+              setMousePos({ x: 0.5, y: 0.5 });
+            }}
+            onMouseMove={handleMouseMove}
+          >
+            {/* Parallax Glow that follows mouse */}
+            <div
+              className="absolute w-[500px] h-[500px] rounded-full pointer-events-none transition-opacity duration-700"
+              style={{
+                left: `${mousePos.x * 100}%`,
+                top: `${mousePos.y * 100}%`,
+                transform: "translate(-50%, -50%)",
+                background: `radial-gradient(circle, rgba(${active.accentRgb},${isHovering ? 0.12 : 0.04}) 0%, transparent 70%)`,
+                opacity: 1,
+                transition: "left 0.3s ease-out, top 0.3s ease-out, background 0.7s ease",
+              }}
+            />
+
+            {/* Accent gradient border on top */}
+            <div
+              className="absolute top-0 left-0 w-full h-[2px]"
+              style={{
+                background: `linear-gradient(90deg, transparent, ${active.accent}, transparent)`,
+                opacity: 0.6,
+                transition: "background 0.7s ease",
+              }}
+            />
+
+            {/* Cyber corner accents */}
+            <div className="absolute top-5 right-5 w-16 h-16 border-t border-r rounded-tr-2xl pointer-events-none transition-colors duration-700"
+              style={{ borderColor: `rgba(${active.accentRgb},0.2)` }}
+            />
+            <div className="absolute bottom-5 left-5 w-16 h-16 border-b border-l rounded-bl-2xl pointer-events-none transition-colors duration-700"
+              style={{ borderColor: `rgba(${active.accentRgb},0.2)` }}
+            />
+
+            {/* Content — animated on project change */}
+            <div
+              key={animKey}
+              className="relative z-10 p-8 md:p-12 flex flex-col justify-between h-full"
+            >
+              {/* Top section */}
+              <div>
+                {/* Status Badge */}
+                <div
+                  className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/50 border border-white/10 backdrop-blur-md mb-8 project-card-enter"
+                  style={{ animationDelay: "0ms" }}
+                >
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full ${active.status === "Operational"
+                      ? "bg-green-500 animate-pulse"
+                      : "bg-yellow-500"
+                      }`}
+                  />
+                  <span className="text-[10px] uppercase tracking-widest text-white/70 font-mono">
+                    {active.status}
+                  </span>
+                </div>
+
+                {/* Subtitle */}
+                <p
+                  className="font-mono text-xs tracking-wider uppercase mb-3 project-card-enter"
+                  style={{
+                    color: active.accent,
+                    animationDelay: "60ms",
+                  }}
+                >
+                  {active.subtitle}
+                </p>
+
+                {/* Title */}
+                <h3
+                  className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 project-card-enter leading-tight"
+                  style={{ animationDelay: "120ms" }}
+                >
+                  {active.title}
+                </h3>
+
+                {/* Description */}
+                <p
+                  className="text-slate-400 text-base md:text-lg leading-relaxed max-w-xl mb-8 project-card-enter"
+                  style={{ animationDelay: "180ms" }}
+                >
+                  {active.description}
+                </p>
+              </div>
+
+              {/* Bottom section */}
+              <div>
+                {/* Tags */}
+                <div
+                  className="flex flex-wrap gap-2 mb-6 project-card-enter"
+                  style={{ animationDelay: "240ms" }}
+                >
+                  {active.tags.map((tag, i) => (
+                    <span
+                      key={i}
+                      className="px-3 py-1.5 rounded-lg text-sm font-mono border transition-colors duration-300"
+                      style={{
+                        borderColor: `rgba(${active.accentRgb},0.15)`,
+                        background: `rgba(${active.accentRgb},0.06)`,
+                        color: active.accent,
+                      }}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                {/* CTA */}
+                <a
+                  href={active.link}
+                  className="inline-flex items-center gap-2 text-white font-bold group/link project-card-enter hover:gap-3 transition-all duration-300"
+                  style={{ animationDelay: "300ms" }}
+                >
+                  <span
+                    className="transition-colors duration-300"
+                    style={{ color: active.accent }}
+                  >
+                    View Project
+                  </span>
+                  <span className="transition-transform duration-300 group-hover/link:translate-x-1">
+                    →
+                  </span>
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
