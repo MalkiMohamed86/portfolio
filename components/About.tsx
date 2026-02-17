@@ -206,7 +206,7 @@ export default function About() {
               {[
                 { value: "Full", label: "Stack Dev" },
                 { value: "8+", label: "Projects" },
-                { value: "3+", label: "Building" },
+                { value: "3+ Years", label: "Building" },
               ].map((stat) => (
                 <div key={stat.label}>
                   <p className="text-3xl font-bold text-white leading-none">{stat.value}</p>
