@@ -274,7 +274,7 @@ export default function Hero() {
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.04-.015-2.04-3.34.72-4.045-1.61-4.045-1.61-.555-1.41-1.35-1.785-1.35-1.785-1.095-.75.075-.735.075-.735 1.215.09 1.86 1.245 1.86 1.245 1.08 1.86 2.835 1.32 3.525 1.005.105-.78.42-1.32.765-1.62-2.67-.3-5.475-1.335-5.475-5.94 0-1.32.465-2.385 1.245-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3.015-.405 1.02.0 2.055.135 3.015.405 2.3-1.545 3.285-1.23 3.285-1.23.675 1.65.24 2.88.135 3.18.78.84 1.245 1.905 1.245 3.225 0 4.62-2.82 5.625-5.49 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225 .69 .825 .57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" /></svg>
               <span className="text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity -ml-2 group-hover:ml-0">GitHub</span>
             </a>
-            <a href="mailto:malkimohamed1202@gmail.com" className="hover:text-white transition-colors flex items-center gap-2 group">
+            <a href="mailto:malki._mohamed@outlook.com" className="hover:text-white transition-colors flex items-center gap-2 group">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
               <span className="text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity -ml-2 group-hover:ml-0">Email</span>
             </a>
@@ -287,12 +287,12 @@ export default function Hero() {
           {/* Tech Badge Grid */}
           <div className="pt-4 border-t border-white/5">
             <p className="text-xs text-zinc-600 font-mono mb-3 uppercase tracking-wider">Powered By</p>
-            <div className="flex gap-4 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-500">
+            <div className="flex gap-4">
               {/* Using simple text badges for max compatibility */}
-              <span className="text-xl font-bold text-white">Next.js</span>
-              <span className="text-xl font-bold text-blue-400">React</span>
-              <span className="text-xl font-bold text-blue-500">TS</span>
-              <span className="text-xl font-bold text-cyan-400">Tailwind</span>
+              <span className="text-xl font-bold text-white hover:scale-110 hover:-translate-y-1 hover:brightness-110 cursor-default transition-all duration-300 ease-out">Next.js</span>
+              <span className="text-xl font-bold text-blue-400 hover:scale-110 hover:-translate-y-1 hover:brightness-110 cursor-default transition-all duration-300 ease-out">React</span>
+              <span className="text-xl font-bold text-blue-500 hover:scale-110 hover:-translate-y-1 hover:brightness-110 cursor-default transition-all duration-300 ease-in-out">TS</span>
+              <span className="text-xl font-bold text-cyan-400 hover:scale-110 hover:-translate-y-1 hover:brightness-110 cursor-default transition-all duration-300 ease-out">Tailwind</span>
             </div>
           </div>
         </div>

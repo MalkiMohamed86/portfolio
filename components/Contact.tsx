@@ -73,7 +73,7 @@ export default function Contact() {
   };
 
   const copyEmail = () => {
-    navigator.clipboard.writeText("hello@johndoe.com");
+    navigator.clipboard.writeText("malki._mohamed@outlook.com");
     setShowCopy(true);
     setTimeout(() => setShowCopy(false), 2000);
   };
@@ -137,7 +137,7 @@ export default function Contact() {
             >
               <h3 className="text-zinc-400 text-xs font-mono tracking-widest uppercase mb-2">Direct Frequency</h3>
               <div className="flex justify-between items-center">
-                <p className="text-lg text-white font-mono group-hover:text-green-400 transition-colors">malkimohamed1202@gmail.com</p>
+                <p className="text-lg text-white font-mono group-hover:text-green-400 transition-colors">malki._mohamed@outlook.com</p>
                 <span className="text-zinc-500 group-hover:text-white transition-colors">
                   {showCopy ? "✓" : "📋"}
                 </span>
